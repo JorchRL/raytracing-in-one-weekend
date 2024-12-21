@@ -1,34 +1,38 @@
 #include <iostream>
 #include "Framebuffer.h"
 #include <raylib.h>
-#include <stdlib.h>
 
+#include "camera.h"
+#include "hittable.h"
+#include "hittable_list.h"
+#include "rtweekend.h"
+#include "sphere.h"
 
 int main() {
-    const int screenWidth = 800;
-    const int screenHeight = 600;
+    hittable_list world;
+    world.add(make_shared<sphere>(point3(0, 0, -1), 0.5));
+    world.add(make_shared<sphere>(point3(0, -100.5, -1), 100));
+    world.add(make_shared<sphere>(point3(1, 0, -1), 0.5));
 
-    Framebuffer framebuffer(screenWidth, screenHeight);
+    camera cam;
 
-    Color *pixels = (Color *) malloc(screenWidth * screenHeight * sizeof(Color));
+    cam.aspect_ratio = 16.0 / 9.0;
+    cam.image_width = 1200;
+    cam.samples_per_pixel = 1000;
 
-    for (int x = 0; x < screenWidth; x++) {
-        for (int y = 0; y < screenHeight; y++) {
-            auto r = double(x) / (screenWidth-1);
-            auto g = double(y) / (screenHeight-1);
-            auto b = 0.25;
-            Color color = {
-                .r = static_cast<unsigned char>(255.999 * r),
-                .g = static_cast<unsigned char>(255.999 * g),
-                .b = static_cast<unsigned char>(255.999 * b),
-                .a = 255
-            };
-            pixels[y * screenWidth + x] = color;
-        }
-    }
+    cam.initialize();
 
-    framebuffer.UpdatePixels(pixels);
-    framebuffer.Run();
+    Framebuffer framebuffer(cam.image_width, cam.image_width/cam.aspect_ratio);
+
+    std::thread render_thread([&cam, &world] ()
+    {
+    cam.render(world);
+    });
+
+    framebuffer.Run(cam.pixels, cam.pixel_mutex);
+    render_thread.join();
+
+    free(cam.pixels);
 
     return 0;
 }
