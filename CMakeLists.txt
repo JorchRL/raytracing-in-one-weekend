@@ -1,7 +1,14 @@
 cmake_minimum_required(VERSION 3.30)
-project(simpleGame)
+project(simpleGame LANGUAGES CXX )
 
 set(CMAKE_CXX_STANDARD 20)
+
+## Specify the CUDA standard
+#set(CMAKE_CUDA_STANDARD 20)
+#set(CMAKE_CUDA_STANDARD_REQUIRED YES)
+#
+## Enable modern architectures for the NVIDIA GPU
+#set(CMAKE_CUDA_ARCHITECTURES 50 60 70 75 80)
 
 # Dependencies
 set(RAYLIB_VERSION 5.5)
@@ -24,8 +31,21 @@ endif ()
 # project (windows)
 add_executable(${PROJECT_NAME} main.cpp
         Framebuffer.cpp
-        Framebuffer.h)
+        Framebuffer.h
+        vec3.h
+        ray.h
+        hittable.h
+        sphere.h
+        hittable_list.h
+        rtweekend.h
+        interval.h
+        camera.h
+        material.h
+        #        RayTracing.cu
+)
 target_link_libraries(${PROJECT_NAME} PUBLIC raylib)
+
+#set_source_files_properties(RayTracing.cu PROPERTIES LANGUAGE CUDA)
 
 # Web Configurations
 if (${PLATFORM} STREQUAL "Web")
