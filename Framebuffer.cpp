@@ -4,6 +4,9 @@
 
 #include "Framebuffer.h"
 
+#include <iostream>
+#include <mutex>
+#include <ostream>
 #include <stdlib.h>
 
 
@@ -23,27 +26,37 @@ Framebuffer::Framebuffer(int width, int height): screenWidth(width),
 }
 
 Framebuffer::~Framebuffer() {
+    img.data = pixels;
     UnloadTexture(tex);
     UnloadImage(img);
     CloseWindow();
+    // if (pixels) free(pixels);
 }
 
 void Framebuffer::UpdatePixels(Color * newPixels) {
     img.data = newPixels;
-    UpdateTexture(tex, img.data);
 }
 
 void Framebuffer::Render() {
     BeginDrawing();
     ClearBackground(RAYWHITE);
-    // UpdateTexture(tex, pixels);
+    UpdateTexture(tex, img.data);
     DrawTexture(tex, 0, 0, WHITE);
+    // display fps
+
+    DrawFPS(10, 10);
+
     EndDrawing();
 }
 
-void Framebuffer::Run() {
+void Framebuffer::Run(Color * sharedPixels, std::mutex& pixelMutex) {
 
     while (!WindowShouldClose()) {
+        {
+            std::lock_guard<std::mutex> lock(pixelMutex);
+            UpdatePixels(sharedPixels);
+        }
         Render();
     }
+    std::cout << "Exiting" << std::endl;
 }

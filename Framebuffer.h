@@ -5,6 +5,7 @@
 #ifndef FRAMEBUFFER_H
 #define FRAMEBUFFER_H
 
+#include <mutex>
 #include <raylib.h>
 
 class Framebuffer {
@@ -17,7 +18,7 @@ public:
 
     void Render();
 
-    void Run();
+    void Run(Color * sharedPixels, std::mutex &pixelMutex);
 
 private:
     int screenWidth;
